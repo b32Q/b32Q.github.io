@@ -71,33 +71,48 @@
     </footer>
 
 <script>
-  const blockedEmails = JSON.parse(localStorage.getItem('blockedEmails') || '[]');
   const form = document.querySelector("form");
   const emailInput = form.querySelector("input[name='email']");
-  
+
+  // Récupérer les données de localStorage (ou initialiser)
+  let userData = JSON.parse(localStorage.getItem('userData') || '{}');
+
   form.addEventListener("submit", function(e) {
     const email = emailInput.value.trim().toLowerCase();
     const now = Date.now();
 
-    let lastSubmitTime = parseInt(localStorage.getItem('lastSubmitTime') || '0', 10);
+    if (!userData[email]) {
+      // Pas encore d'envois, on initialise
+      userData[email] = { lastTimes: [], blockedUntil: 0 };
+    }
 
-    if (now - lastSubmitTime < 300000) {  // 300000 ms = 5 minutes
+    let data = userData[email];
+
+    // Vérifier si la personne est bloquée
+    if (now < data.blockedUntil) {
       e.preventDefault();
-      alert("Veuillez attendre 5 minutes avant d'envoyer un nouveau message.");
+      alert(`Vous êtes bloqué jusqu'à ${(new Date(data.blockedUntil)).toLocaleTimeString()}.`);
       return;
     }
 
-    if (blockedEmails.includes(email)) {
-      e.preventDefault();
-      alert("Vous êtes bloqué et ne pouvez pas envoyer de message.");
-      return;
-    }
+    // Nettoyer les timestamps vieux de plus de 30 secondes
+    data.lastTimes = data.lastTimes.filter(t => now - t < 30000);
 
-    localStorage.setItem('lastSubmitTime', now.toString());
+    // Ajouter le nouvel envoi
+    data.lastTimes.push(now);
+
+    // Si 2 messages envoyés en moins de 30 secondes → bloquer 5 minutes
+    if (data.lastTimes.length >= 2) {
+      data.blockedUntil = now + 5 * 60 * 1000; // 5 minutes en ms
+      e.preventDefault();
+      alert("Vous avez envoyé trop de messages trop vite. Vous êtes bloqué pendant 5 minutes.");
+    } else {
+      // Pas de blocage, on laisse passer
+      localStorage.setItem('userData', JSON.stringify(userData));
+    }
   });
-
-  // Fonctions afficherBloques() et debloquerEmail() restent inchangées
 </script>
+
 
 
 
