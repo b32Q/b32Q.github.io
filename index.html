@@ -70,7 +70,36 @@
         </ul>
     </footer>
 
+<script>
+  // Bloquer les emails indésirables
+  const blockedEmails = ["spammeur@example.com", "monami@mail.com"]; // ➜ modifie cette liste
 
+  let lastSubmitTime = 0;
+
+  const form = document.querySelector("form");
+
+  form.addEventListener("submit", function (e) {
+    const now = Date.now();
+    const emailInput = form.querySelector("input[name='email']");
+    const email = emailInput.value.trim().toLowerCase();
+
+    // Limiter à 1 message toutes les 30 secondes
+    if (now - lastSubmitTime < 30000) {
+      e.preventDefault();
+      alert("Veuillez attendre 30 secondes avant d'envoyer un nouveau message.");
+      return;
+    }
+
+    // Bloquer les emails spécifiques
+    if (blockedEmails.includes(email)) {
+      e.preventDefault();
+      alert("Vous n'êtes pas autorisé à envoyer un message.");
+      return;
+    }
+
+    lastSubmitTime = now; // mise à jour du temps si tout est OK
+  });
+</script>
 
 
 
