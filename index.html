@@ -71,35 +71,34 @@
     </footer>
 
 <script>
-  // Bloquer les emails indésirables
-  const blockedEmails = ["spammeur@example.com", "monami@mail.com"]; // ➜ modifie cette liste
-
-  let lastSubmitTime = 0;
-
+  const blockedEmails = JSON.parse(localStorage.getItem('blockedEmails') || '[]');
   const form = document.querySelector("form");
-
-  form.addEventListener("submit", function (e) {
-    const now = Date.now();
-    const emailInput = form.querySelector("input[name='email']");
+  const emailInput = form.querySelector("input[name='email']");
+  
+  form.addEventListener("submit", function(e) {
     const email = emailInput.value.trim().toLowerCase();
+    const now = Date.now();
 
-    // Limiter à 1 message toutes les 30 secondes
-    if (now - lastSubmitTime < 30000) {
+    let lastSubmitTime = parseInt(localStorage.getItem('lastSubmitTime') || '0', 10);
+
+    if (now - lastSubmitTime < 300000) {  // 300000 ms = 5 minutes
       e.preventDefault();
-      alert("Veuillez attendre 30 secondes avant d'envoyer un nouveau message.");
+      alert("Veuillez attendre 5 minutes avant d'envoyer un nouveau message.");
       return;
     }
 
-    // Bloquer les emails spécifiques
     if (blockedEmails.includes(email)) {
       e.preventDefault();
-      alert("Vous n'êtes pas autorisé à envoyer un message.");
+      alert("Vous êtes bloqué et ne pouvez pas envoyer de message.");
       return;
     }
 
-    lastSubmitTime = now; // mise à jour du temps si tout est OK
+    localStorage.setItem('lastSubmitTime', now.toString());
   });
+
+  // Fonctions afficherBloques() et debloquerEmail() restent inchangées
 </script>
+
 
 
 
